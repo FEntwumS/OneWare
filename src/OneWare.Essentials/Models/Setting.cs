@@ -197,8 +197,10 @@ public class AdvancedComboBoxOption
 
     public string? MarkdownDocumentation { get; init; }
 
+    [Obsolete("Rather modify the parents collection. This property will not work. Only kept here to avoid compatibility issues")]
     public IObservable<bool>? IsEnabledObservable { get; init; }
 
+    [Obsolete("Rather modify the parents collection. This property will not work. Only kept here to avoid compatibility issues")]
     public IObservable<bool>? IsVisibleObservable { get; init; }
 
     public override string? ToString()
