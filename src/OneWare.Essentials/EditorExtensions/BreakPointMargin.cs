@@ -13,7 +13,6 @@ public class BreakPointMargin : AbstractMargin
     private readonly string _filePath;
     private readonly TextEditor _editor;
     private readonly BreakpointStore _manager;
-
     private int _previewLine;
     private bool _previewPointVisible;
 
@@ -33,50 +32,46 @@ public class BreakPointMargin : AbstractMargin
 
     public override void Render(DrawingContext context)
     {
-        if (TextView.VisualLinesValid)
-        {
-            context.FillRectangle(Brushes.Transparent,
-                new Rect(0, 0, Bounds.Width, Bounds.Height));
+        if (!TextView.VisualLinesValid) return;
+        context.FillRectangle(Brushes.Transparent,
+            new Rect(0, 0, Bounds.Width, Bounds.Height));
 
-            if (TextView.VisualLines.Count > 0)
+        if (TextView.VisualLines.Count <= 0) return;
+        var firstLine = TextView.VisualLines.FirstOrDefault();
+        if (firstLine == null) return;
+
+        foreach (var breakPoint in _manager.Breakpoints)
+            if (breakPoint.File == _filePath)
             {
-                var firstLine = TextView.VisualLines.FirstOrDefault();
-                if (firstLine == null) return;
+                var visualLine = TextView.VisualLines.FirstOrDefault(vl =>
+                    vl.FirstDocumentLine.LineNumber == breakPoint.Line);
 
-                foreach (var breakPoint in _manager.Breakpoints)
-                    if (breakPoint.File == _filePath)
-                    {
-                        var visualLine = TextView.VisualLines.FirstOrDefault(vl =>
-                            vl.FirstDocumentLine.LineNumber == breakPoint.Line);
-
-                        if (visualLine != null)
-                            context.FillRectangle(Brush.Parse("#FF3737"),
-                                new Rect(
-                                    Bounds.Size.Width / 4 - 1,
-                                    visualLine.GetTextLineVisualYPosition(visualLine.TextLines[0],
-                                        VisualYPosition.LineTop) + Bounds.Size.Width / 1.5 / 4 -
-                                    TextView.VerticalOffset,
-                                    Bounds.Size.Width / 1.5,
-                                    visualLine.Height / 1.5),
-                                (float)visualLine.Height);
-                    }
-
-                if (_previewPointVisible)
-                {
-                    var visualLine =
-                        TextView.VisualLines.FirstOrDefault(vl => vl.FirstDocumentLine.LineNumber == _previewLine);
-
-                    if (visualLine != null)
-                        context.FillRectangle(Brush.Parse("#E67466"),
-                            new Rect(
-                                Bounds.Size.Width / 4 - 1,
-                                visualLine.GetTextLineVisualYPosition(visualLine.TextLines[0],
-                                    VisualYPosition.LineTop) + Bounds.Size.Width / 1.5 / 4 -
-                                TextView.VerticalOffset,
-                                Bounds.Size.Width / 1.5,
-                                visualLine.Height / 1.5), (float)visualLine.Height);
-                }
+                if (visualLine != null)
+                    context.FillRectangle(Brush.Parse("#FF3737"),
+                        new Rect(
+                            Bounds.Size.Width / 4 - 1,
+                            visualLine.GetTextLineVisualYPosition(visualLine.TextLines[0],
+                                VisualYPosition.LineTop) + Bounds.Size.Width / 1.5 / 4 -
+                            TextView.VerticalOffset,
+                            Bounds.Size.Width / 1.5,
+                            visualLine.Height / 1.5),
+                        (float)visualLine.Height);
             }
+
+        if (!_previewPointVisible) return;
+        {
+            var visualLine =
+                TextView.VisualLines.FirstOrDefault(vl => vl.FirstDocumentLine.LineNumber == _previewLine);
+
+            if (visualLine != null)
+                context.FillRectangle(Brush.Parse("#E67466"),
+                    new Rect(
+                        Bounds.Size.Width / 4 - 1,
+                        visualLine.GetTextLineVisualYPosition(visualLine.TextLines[0],
+                            VisualYPosition.LineTop) + Bounds.Size.Width / 1.5 / 4 -
+                        TextView.VerticalOffset,
+                        Bounds.Size.Width / 1.5,
+                        visualLine.Height / 1.5), (float)visualLine.Height);
         }
     }
 
@@ -131,9 +126,7 @@ public class BreakPointMargin : AbstractMargin
 
     protected override Size MeasureOverride(Size availableSize)
     {
-        if (TextView != null) return new Size(TextView.DefaultLineHeight, 0);
-
-        return new Size(0, 0);
+        return TextView != null ? new Size(TextView.DefaultLineHeight, 0) : new Size(0, 0);
     }
 
     protected override void OnPointerExited(PointerEventArgs e)
