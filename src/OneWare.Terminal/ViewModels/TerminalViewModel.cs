@@ -137,6 +137,20 @@ public class TerminalViewModel : ObservableObject
         if (Connection?.IsConnected ?? false) Connection.SendData(Encoding.ASCII.GetBytes($"{command}\r"));
     }
 
+    public void SendInterrupt()
+    {
+        // Send Ctrl+C (ETX) to abort the currently running foreground command
+        // so the shell returns to a usable prompt.
+        if (Connection?.IsConnected ?? false) Connection.SendData([0x03]);
+    }
+
+    public void KillProcess()
+    {
+        // Forcibly terminate the shell and any child processes. Used as a last
+        // resort when an interrupt (Ctrl+C) fails to free a stuck command.
+        if (Connection is PseudoTerminalConnection ptc) ptc.KillProcess();
+    }
+
     public void SuppressEcho(byte[] data)
     {
         if (Connection is IOutputSuppressor suppressor)
