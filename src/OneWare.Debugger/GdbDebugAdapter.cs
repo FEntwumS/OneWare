@@ -11,7 +11,7 @@ public class GdbDebugAdapter(ILogger logger, ISettingsService settingsService) :
     public string DisplayName => "GDB-Debug-Adapter";
     public string Description => "GNU Debugger Adapter via MI - includes GDB Binary Resolution";
  
-    public static string? SuggestGdbPath()
+    public static string SuggestGdbPath()
     {
         // Plattformüblicher Standard-Installationsort zuerst prüfen.
         string? defaultLocation = null;
@@ -27,9 +27,9 @@ public class GdbDebugAdapter(ILogger logger, ISettingsService settingsService) :
 
         // Kein GDB am Standardort -> im System-PATH suchen.
         var binaryName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "gdb.exe" : "gdb";
-        return PlatformHelper.GetFullPath(binaryName); //if null "gdb"
+        return PlatformHelper.GetFullPath(binaryName) ?? binaryName;
     }
-    
+
 
     private string ResolveGdbPath()
     {
@@ -40,10 +40,5 @@ public class GdbDebugAdapter(ILogger logger, ISettingsService settingsService) :
             return configured;
 
         return SuggestGdbPath();
-    }
-    
-    public static bool IsValidGdbInstallation(string gdbPath)
-    {
-        return File.Exists(gdbPath);
     }
 }
