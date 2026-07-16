@@ -19,6 +19,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\OneWare.Core\OneWare.Core.csproj"/>
+        <ProjectReference Include="..\..\src\OneWare.Debugger\OneWare.Debugger.csproj"/>
         <ProjectReference Include="..\..\src\OneWare.Cpp\OneWare.Cpp.csproj"/>
         <ProjectReference Include="..\..\src\OneWare.CruviAdapterExtensions\OneWare.CruviAdapterExtensions.csproj"/>
         <ProjectReference Include="..\..\src\OneWare.MarkdownViewer\OneWare.MarkdownViewer.csproj"/>

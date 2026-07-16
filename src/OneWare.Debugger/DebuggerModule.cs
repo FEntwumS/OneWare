@@ -31,7 +31,7 @@ public class DebuggerModule : OneWareModuleBase
                 gdbPath,
                 "Auto-detected",
                 paths.NativeToolsDirectory,
-                GdbDebugAdapter.IsValidGdbInstallation,
+                GdbDebugAdapter.IsValidGdbInstallation(gdbPath),
                 PlatformHelper.ExeFile)
             {
                 HoverDescription = "Path to the GDB executable. Leave empty to use auto-detection."
