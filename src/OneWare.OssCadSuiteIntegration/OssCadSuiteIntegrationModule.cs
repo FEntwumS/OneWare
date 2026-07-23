@@ -50,26 +50,34 @@ public class OssCadSuiteIntegrationModule : OneWareModuleBase
         fpgaService.RegisterNodeProvider<YosysNodeProvider>();
         
         var toolService = serviceProvider.Resolve<IToolService>();
-        toolService.Register(new ToolContext("yosys", "Synth Tool", "yosys"), new NativeStrategy());
-        
-        toolService.Register(new ToolContext("nextpnr-ecp5", "Place and Routing Tool for ECP5", "nextpnr-ecp5"), new NativeStrategy());
-        toolService.Register(new ToolContext("nextpnr-generic", "Place and Routing Tool for generic devices", "nextpnr-generic"),new NativeStrategy());
-        toolService.Register(new ToolContext("nextpnr-himbaechel", "Place and Routing Tool for large archs", "nextpnr-himbaechel"), new NativeStrategy());
-        toolService.Register(new ToolContext("nextpnr-ice40", "Place and Routing Tool for ICE40", "nextpnr-ice40"), new NativeStrategy());
-        toolService.Register(new ToolContext("nextpnr-machxo2", "Place and Routing Tool MachXO2", "nextpnr-machxo2"), new NativeStrategy());
-        toolService.Register(new ToolContext("nextpnr-nexus", "Place and Routing Tool for nexus", "nextpnr-nexus"), new NativeStrategy());
-        
-        toolService.Register(new ToolContext("openFPGALoader", "FPGA Loader", "openFPGALoader"), new NativeStrategy());
-        toolService.Register(new ToolContext("iceprog", "Packing", "FPGA Loader"), new NativeStrategy());
-        
-        toolService.Register(new ToolContext("icepack", "Packing", "icepack"), new NativeStrategy());
-        toolService.Register(new ToolContext("gmpack", "Packing", "gmpack"), new NativeStrategy());
-        toolService.Register(new ToolContext("gowin_pack", "Packing", "gowin_pack"), new NativeStrategy());
-        toolService.Register(new ToolContext("gmupack", "Packing", "gmupack"), new NativeStrategy());
-        
-        toolService.Register(new ToolContext("gtkwave", "Visualisation", "gtkwave"), new NativeStrategy());
-        toolService.Register(new ToolContext("iverilog", "Simulation", "iverilog"), new NativeStrategy());
-        toolService.Register(new ToolContext("vvp", "Simulation", "vvp"), new NativeStrategy());
+        var nativeStrategy = new NativeStrategy();
+
+        void RegisterNativeTool(string name, string description, string key)
+        {
+            toolService.Register(new ToolContext(name, description, key));
+            toolService.RegisterStrategy(key, nativeStrategy);
+        }
+
+        RegisterNativeTool("yosys", "Synth Tool", "yosys");
+
+        RegisterNativeTool("nextpnr-ecp5", "Place and Routing Tool for ECP5", "nextpnr-ecp5");
+        RegisterNativeTool("nextpnr-generic", "Place and Routing Tool for generic devices", "nextpnr-generic");
+        RegisterNativeTool("nextpnr-himbaechel", "Place and Routing Tool for large archs", "nextpnr-himbaechel");
+        RegisterNativeTool("nextpnr-ice40", "Place and Routing Tool for ICE40", "nextpnr-ice40");
+        RegisterNativeTool("nextpnr-machxo2", "Place and Routing Tool MachXO2", "nextpnr-machxo2");
+        RegisterNativeTool("nextpnr-nexus", "Place and Routing Tool for nexus", "nextpnr-nexus");
+
+        RegisterNativeTool("openFPGALoader", "FPGA Loader", "openFPGALoader");
+        RegisterNativeTool("iceprog", "Packing", "FPGA Loader");
+
+        RegisterNativeTool("icepack", "Packing", "icepack");
+        RegisterNativeTool("gmpack", "Packing", "gmpack");
+        RegisterNativeTool("gowin_pack", "Packing", "gowin_pack");
+        RegisterNativeTool("gmupack", "Packing", "gmupack");
+
+        RegisterNativeTool("gtkwave", "Visualisation", "gtkwave");
+        RegisterNativeTool("iverilog", "Simulation", "iverilog");
+        RegisterNativeTool("vvp", "Simulation", "vvp");
 
         
         serviceProvider.Resolve<IPackageService>().RegisterPackage(OssCadSuiteHelper.OssCadPackage);

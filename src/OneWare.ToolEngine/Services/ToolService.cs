@@ -21,12 +21,13 @@ public class ToolService : IToolService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public void Register(ToolContext description, IToolExecutionStrategy strategy)
+    public void Register(ToolContext description)
     {
-        RegisterStrategy(description.Key, strategy);
-        RegisterToolInSettings(description);
+        if (_tools.Any(t => t.Key == description.Key))
+            throw new InvalidOperationException($"Tool with key '{description.Key}' is already registered.");
 
         _tools.Add(description);
+        SyncStrategyOptions(description.Key);
     }
 
 
@@ -66,6 +67,37 @@ public class ToolService : IToolService
         }
 
         strategyMap[strategy.GetStrategyKey()] = strategy;
+
+        SyncStrategyOptions(toolKey);
+    }
+
+    /// <summary>
+    /// Builds the tool's Settings dropdown the first time both its <see cref="ToolContext"/> and at least
+    /// one strategy are known, and keeps it in sync afterwards. <see cref="Register"/> and
+    /// <see cref="RegisterStrategy"/> can run in either order - whichever call completes the pair builds
+    /// the setting. Once built, only the selectable options are ever updated here, never the active value,
+    /// so a tool's runtime behavior never changes without the user explicitly picking a new strategy.
+    /// </summary>
+    private void SyncStrategyOptions(string toolKey)
+    {
+        var currentKeys = GetStrategyKeys(toolKey);
+        if (currentKeys.Length == 0) return;
+
+        if (_settingsService.HasSetting(toolKey))
+        {
+            if (_settingsService.GetSetting(toolKey) is ComboBoxSetting combo &&
+                !combo.Options.SequenceEqual(currentKeys))
+                combo.Options = currentKeys.Cast<object>().ToArray();
+            return;
+        }
+
+        var description = _tools.FirstOrDefault(t => t.Key == toolKey);
+        if (description is null) return;
+
+        var defaultStrategy = description.PreferredStrategyKeys.FirstOrDefault(currentKeys.Contains) ?? currentKeys[0];
+
+        var setting = new ComboBoxSetting(description.Name, defaultStrategy, currentKeys.Cast<object>().ToArray());
+        _settingsService.RegisterSetting("Binary Management", "Execution Strategy", toolKey, setting);
     }
 
     public void UnregisterStrategy(string strategyKey)
@@ -114,19 +146,39 @@ public class ToolService : IToolService
         throw new InvalidOperationException($"No strategy with key '{toolKey}' was found.");
     }
 
-    private void RegisterToolInSettings(ToolContext description)
+    public IReadOnlyDictionary<string, string> GetStrategyConfiguration(string toolKey)
     {
-        var strategies = GetStrategyKeys(description.Key);
+        var defaults = _tools.FirstOrDefault(t => t.Key == toolKey)?.StrategyConfiguration
+                       ?? new Dictionary<string, string>();
 
-        if (strategies.Length == 0)
-        {
-            _logger.Warning($"No strategies found for Tool: {description.Key}");
-            return;
-        }
+        var overrideKey = StrategyConfigOverrideKey(toolKey);
+        if (!_settingsService.HasSetting(overrideKey)) return defaults;
 
-        var setting = new ComboBoxSetting(description.Name, strategies[0], strategies.ToArray());
-        _settingsService.RegisterSetting("Binary Management", "Execution Strategy", description.Key, setting);
+        var overrides = _settingsService.GetSettingValue<Dictionary<string, string>>(overrideKey);
+        if (overrides.Count == 0) return defaults;
+
+        var merged = new Dictionary<string, string>(defaults);
+        foreach (var (key, value) in overrides) merged[key] = value;
+        return merged;
     }
+
+    public void SetStrategyConfigurationValue(string toolKey, string configKey, string value)
+    {
+        var overrideKey = StrategyConfigOverrideKey(toolKey);
+        if (!_settingsService.HasSetting(overrideKey))
+            _settingsService.Register(overrideKey, new Dictionary<string, string>());
+
+        // Copy rather than mutate in place: Setting.Value change notifications only fire on a new reference.
+        var overrides = new Dictionary<string, string>(
+            _settingsService.GetSettingValue<Dictionary<string, string>>(overrideKey))
+        {
+            [configKey] = value
+        };
+
+        _settingsService.SetSettingValue(overrideKey, overrides);
+    }
+
+    private static string StrategyConfigOverrideKey(string toolKey) => $"{toolKey}_StrategyConfigOverrides";
 
     public void UpdateSettings()
     {

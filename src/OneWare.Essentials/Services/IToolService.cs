@@ -6,9 +6,11 @@ namespace OneWare.Essentials.Services;
 public interface IToolService
 {
     /// <summary>
-    /// Registers a tool and its default strategy.
+    /// Registers a tool. At least one execution strategy must be attached separately via
+    /// <see cref="RegisterStrategy"/>, before or after this call - the Settings entry for the tool is
+    /// built as soon as both are known, regardless of order.
     /// </summary>
-    void Register(ToolContext description, IToolExecutionStrategy strategy);
+    void Register(ToolContext description);
 
     /// <summary>
     /// Unregisters a tool by context.
@@ -54,4 +56,19 @@ public interface IToolService
     /// Returns the active strategy for a tool.
     /// </summary>
     IToolExecutionStrategy GetStrategy(string toolKey);
+
+    /// <summary>
+    /// Returns the effective strategy configuration for a tool: the plugin-declared defaults from its
+    /// <see cref="ToolContext.StrategyConfiguration"/>, with any user-set overrides applied on top.
+    /// A strategy implementation resolves this itself (e.g. via <c>ContainerLocator</c>, the same way
+    /// <c>NativeStrategy</c> resolves <c>IChildProcessService</c>) using the tool key it was asked to run,
+    /// and reads whichever keys it recognizes by convention (e.g. "docker.image").
+    /// </summary>
+    IReadOnlyDictionary<string, string> GetStrategyConfiguration(string toolKey);
+
+    /// <summary>
+    /// Sets a user override for a single strategy configuration key on a tool, taking precedence over the
+    /// owning plugin's declared default for that key. Other keys are left untouched.
+    /// </summary>
+    void SetStrategyConfigurationValue(string toolKey, string configKey, string value);
 }
