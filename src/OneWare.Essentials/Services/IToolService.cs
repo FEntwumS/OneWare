@@ -58,6 +58,14 @@ public interface IToolService
     IToolExecutionStrategy GetStrategy(string toolKey);
 
     /// <summary>
+    /// Returns the strategy registered for a tool under a specific strategy key, bypassing the tool's
+    /// configured strategy setting entirely. Used to force a specific call onto a specific strategy
+    /// (see <see cref="OneWare.Essentials.ToolEngine.ToolCommand.ForcedStrategyKey"/>).
+    /// </summary>
+    /// <returns>The matching strategy, or <c>null</c> if no such strategy is registered for the tool.</returns>
+    IToolExecutionStrategy? TryGetStrategy(string toolKey, string strategyKey);
+
+    /// <summary>
     /// Returns the effective strategy configuration for a tool: the plugin-declared defaults from its
     /// <see cref="ToolContext.StrategyConfiguration"/>, with any user-set overrides applied on top.
     /// A strategy implementation resolves this itself (e.g. via <c>ContainerLocator</c>, the same way

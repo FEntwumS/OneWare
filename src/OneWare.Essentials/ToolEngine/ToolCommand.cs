@@ -18,6 +18,14 @@ public class ToolCommand
         CommandArguments.Select(x => x.GetArgument()).ToList().AsReadOnly();
     
     public required IReadOnlyCollection<ICommandArgument> CommandArguments { get; init; }
+
+    /// <summary>
+    /// When set, forces this specific call to run with the strategy matching this key, regardless of the
+    /// tool's currently configured strategy setting. Fails (see <see cref="IToolExecutionDispatcherService"/>
+    /// return conventions) if no such strategy is registered for the tool.
+    /// </summary>
+    public string? ForcedStrategyKey { get; init; }
+
     public string WorkingDirectory { get; init; } = ".";
     public string StatusMessage { get; init; } = "Running tool...";
     public AppState State { get; init; } = AppState.Loading;

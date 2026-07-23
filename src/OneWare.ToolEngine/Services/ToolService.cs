@@ -146,6 +146,15 @@ public class ToolService : IToolService
         throw new InvalidOperationException($"No strategy with key '{toolKey}' was found.");
     }
 
+    public IToolExecutionStrategy? TryGetStrategy(string toolKey, string strategyKey)
+    {
+        if (_toolStrategies.TryGetValue(toolKey, out var strategies) &&
+            strategies.TryGetValue(strategyKey, out var strategy))
+            return strategy;
+
+        return null;
+    }
+
     public IReadOnlyDictionary<string, string> GetStrategyConfiguration(string toolKey)
     {
         var defaults = _tools.FirstOrDefault(t => t.Key == toolKey)?.StrategyConfiguration

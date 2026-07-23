@@ -14,28 +14,28 @@ public class ToolExecutionDispatcherService(IToolService service, ILogger logger
     {
         try
         {
-            return service.GetStrategy(command.ToolName).ExecuteAsync(command);
+            return ResolveStrategy(command).ExecuteAsync(command);
         }
         catch (InvalidOperationException exception)
         {
             logger.LogError(exception, exception.Message);
         }
-        
+
         return Task.FromResult<(bool success, string output)>((false, ""));
-        
+
     }
 
     public WeakReference<Process> StartWeakProcess(ToolCommand command)
     {
         try
         {
-            return service.GetStrategy(command.ToolName).StartWeakProcess(command);
+            return ResolveStrategy(command).StartWeakProcess(command);
         }
         catch (InvalidOperationException exception)
         {
             logger.LogError(exception, exception.Message);
         }
-        
+
         return null!;
     }
 
@@ -43,7 +43,7 @@ public class ToolExecutionDispatcherService(IToolService service, ILogger logger
     {
         try
         {
-            var strategy = service.GetStrategy(command.ToolName);
+            var strategy = ResolveStrategy(command);
             var handle = strategy.StartProcess(command);
             _backgroundProcessStrategies[handle] = strategy;
             return handle;
@@ -54,6 +54,22 @@ public class ToolExecutionDispatcherService(IToolService service, ILogger logger
         }
 
         return Guid.Empty;
+    }
+
+    /// <summary>
+    /// Resolves the strategy for a command: the one named by <see cref="ToolCommand.ForcedStrategyKey"/> if
+    /// set, otherwise the tool's currently configured strategy. Throws <see cref="InvalidOperationException"/>
+    /// if a forced key doesn't match any strategy registered for the tool, consistent with how an unregistered
+    /// tool is handled by <see cref="IToolService.GetStrategy"/>.
+    /// </summary>
+    private IToolExecutionStrategy ResolveStrategy(ToolCommand command)
+    {
+        if (command.ForcedStrategyKey is { } forcedKey)
+            return service.TryGetStrategy(command.ToolName, forcedKey)
+                   ?? throw new InvalidOperationException(
+                       $"Forced strategy '{forcedKey}' is not registered for tool '{command.ToolName}'.");
+
+        return service.GetStrategy(command.ToolName);
     }
 
     public bool StopProcess(Guid handle)

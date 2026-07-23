@@ -18,11 +18,16 @@ public interface IToolExecutionDispatcherService
     public WeakReference<Process> StartWeakProcess(ToolCommand command);
 
     /// <summary>
-    ///     Starts the tool as a long-running background process via its configured execution strategy.
+    ///     Starts the tool as a long-running background process via its configured execution strategy
+    ///     (or the strategy named by <see cref="ToolCommand.ForcedStrategyKey"/>, if set).
     ///     The process is tracked internally until it is stopped with <see cref="StopProcess"/> or exits on its own.
     /// </summary>
     /// <param name="command">The run configuration for the strategy.</param>
-    /// <returns>An opaque handle identifying the started process, to be passed to <see cref="StopProcess"/>.</returns>
+    /// <returns>
+    ///     An opaque handle identifying the started process, to be passed to <see cref="StopProcess"/>.
+    ///     <see cref="Guid.Empty"/> indicates the process could not be started - e.g. the tool isn't
+    ///     registered, or a forced strategy key doesn't match any strategy registered for the tool.
+    /// </returns>
     public Guid StartProcess(ToolCommand command);
 
     /// <summary>

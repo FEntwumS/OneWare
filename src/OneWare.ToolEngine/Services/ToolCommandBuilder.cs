@@ -19,6 +19,7 @@ public class ToolCommandBuilder : IToolCommandBuilder
     private AppState _state = AppState.Loading;
     private string _status = "Running...";
     private string _workingDir = ".";
+    private string? _forcedStrategyKey;
 
     internal ToolCommandBuilder(string toolName)
     {
@@ -201,6 +202,12 @@ public class ToolCommandBuilder : IToolCommandBuilder
         return this;
     }
 
+    public IToolCommandBuilder ForceStrategy(string strategyKey)
+    {
+        _forcedStrategyKey = strategyKey;
+        return this;
+    }
+
     public ToolCommand Build()
     {
         if (string.IsNullOrWhiteSpace(_toolName) && string.IsNullOrWhiteSpace(_executable))
@@ -219,7 +226,8 @@ public class ToolCommandBuilder : IToolCommandBuilder
             ErrorHandler = _errorHandler,
             EnvironmentVariables = new Dictionary<string, string>(_envVars),
             PortMappings = _portMappings,
-            ExposedPorts = _exposedPorts
+            ExposedPorts = _exposedPorts,
+            ForcedStrategyKey = _forcedStrategyKey
         };
     }
 }

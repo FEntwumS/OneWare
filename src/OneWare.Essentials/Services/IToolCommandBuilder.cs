@@ -140,10 +140,17 @@ public interface IToolCommandBuilder
     IToolCommandBuilder WithExposedPort(int port, string protocol = "TCP");
     
     /// <summary>
-    /// Defines a network port mapping. 
+    /// Defines a network port mapping.
     /// Native runners typically use the guestPort directly, while container runners map the hostPort to the guestPort.
     /// </summary>
     IToolCommandBuilder AddPortMapping(int hostPort, int guestPort, string protocol = "TCP");
+
+    /// <summary>
+    /// Forces this command to run with the strategy matching <paramref name="strategyKey"/>, regardless of
+    /// the tool's currently configured strategy setting. Use when a specific call has requirements
+    /// (e.g. container networking) that only one particular strategy can satisfy.
+    /// </summary>
+    IToolCommandBuilder ForceStrategy(string strategyKey);
 
     /// <summary>
     /// Builds the final <see cref="ToolCommand"/> instance.
