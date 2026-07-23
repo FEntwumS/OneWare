@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using OneWare.Essentials.Services;
@@ -7,6 +8,8 @@ namespace OneWare.ToolEngine.Services;
 
 public class ToolExecutionDispatcherService(IToolService service, ILogger logger) : IToolExecutionDispatcherService
 {
+    private readonly ConcurrentDictionary<Guid, IToolExecutionStrategy> _backgroundProcessStrategies = new();
+
     public Task<(bool success, string output)> ExecuteAsync(ToolCommand command)
     {
         try
@@ -34,6 +37,30 @@ public class ToolExecutionDispatcherService(IToolService service, ILogger logger
         }
         
         return null!;
+    }
+
+    public Guid StartProcess(ToolCommand command)
+    {
+        try
+        {
+            var strategy = service.GetStrategy(command.ToolName);
+            var handle = strategy.StartProcess(command);
+            _backgroundProcessStrategies[handle] = strategy;
+            return handle;
+        }
+        catch (InvalidOperationException exception)
+        {
+            logger.LogError(exception, exception.Message);
+        }
+
+        return Guid.Empty;
+    }
+
+    public bool StopProcess(Guid handle)
+    {
+        if (!_backgroundProcessStrategies.TryRemove(handle, out var strategy)) return false;
+
+        return strategy.StopProcess(handle);
     }
 
     public IToolCommandBuilder CreateToolCommandBuilder(string toolName)
