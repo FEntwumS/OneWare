@@ -79,4 +79,12 @@ public interface IToolService
     /// owning plugin's declared default for that key. Other keys are left untouched.
     /// </summary>
     void SetStrategyConfigurationValue(string toolKey, string configKey, string value);
+
+    /// <summary>
+    /// Returns the fully merged strategy configuration for a specific call: the tool's plugin-declared
+    /// defaults, overridden by any user Settings override (both from <see cref="GetStrategyConfiguration"/>),
+    /// overridden in turn by <see cref="ToolCommand.StrategyConfigurationOverrides"/> for this call only.
+    /// A strategy implementation should call this instead of merging the layers itself.
+    /// </summary>
+    IReadOnlyDictionary<string, string> GetEffectiveStrategyConfiguration(ToolCommand command);
 }

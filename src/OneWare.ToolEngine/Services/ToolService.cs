@@ -187,6 +187,16 @@ public class ToolService : IToolService
         _settingsService.SetSettingValue(overrideKey, overrides);
     }
 
+    public IReadOnlyDictionary<string, string> GetEffectiveStrategyConfiguration(ToolCommand command)
+    {
+        var configuration = GetStrategyConfiguration(command.ToolName);
+        if (command.StrategyConfigurationOverrides.Count == 0) return configuration;
+
+        var merged = new Dictionary<string, string>(configuration);
+        foreach (var (key, value) in command.StrategyConfigurationOverrides) merged[key] = value;
+        return merged;
+    }
+
     private static string StrategyConfigOverrideKey(string toolKey) => $"{toolKey}_StrategyConfigOverrides";
 
     public void UpdateSettings()

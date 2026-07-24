@@ -153,6 +153,12 @@ public interface IToolCommandBuilder
     IToolCommandBuilder ForceStrategy(string strategyKey);
 
     /// <summary>
+    /// Overrides a strategy configuration key (e.g. "docker.image") for this call only, taking precedence
+    /// over both the tool's plugin-declared default and any user-set override.
+    /// </summary>
+    IToolCommandBuilder WithStrategyConfiguration(string key, string value);
+
+    /// <summary>
     /// Builds the final <see cref="ToolCommand"/> instance.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown if neither ToolName nor Executable is set.</exception>
